@@ -30,7 +30,6 @@ function main() {
       default: false,
     })
     .demandOption(["network"])
-    .strict() // This will make yargs throw an error for unknown options
     .help()
     .parseSync() as CommandLineOptions;
 
@@ -53,7 +52,6 @@ function main() {
     execSync(command, { stdio: "inherit" });
   } catch (error) {
     console.error("Error during deployment:", error);
-    process.exit(1);
   }
 }
 

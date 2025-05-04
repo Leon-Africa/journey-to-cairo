@@ -1,11 +1,10 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { RpcProvider } from "starknet";
 import { useTargetNetwork } from "./useTargetNetwork";
-import { fetchPrice } from "~~/services/web3/PriceService";
 
 interface BlockData {
   transaction: number;
-  blockStatus: string | undefined;
+  blockStatus: string;
   blockNumber: number;
   blockHash: string;
   blockVersion: string;
@@ -66,19 +65,32 @@ export const useDataTransaction = (blockNumber: number) => {
 
         if (!txHashes || txHashes.length === 0) return 0;
 
-        let totalFeeFri = BigInt(0);
+        let totalFeeWei = BigInt(0);
         for (const txHash of txHashes) {
           const receipt: any = await publicClient.getTransactionReceipt(txHash);
           if (receipt?.actual_fee) {
-            totalFeeFri += BigInt(receipt.actual_fee.amount);
+            totalFeeWei += BigInt(receipt.actual_fee.amount);
           }
         }
 
-        const totalFee = Number(totalFeeFri) / 1e18;
+        const totalFeeEther = Number(totalFeeWei) / 1e18;
 
-        const starkPriceInUSD = await fetchPrice();
+        const fetchEthPrice = async () => {
+          try {
+            const response = await fetch(
+              "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
+            );
+            const data = await response.json();
+            return data.ethereum.usd;
+          } catch (error) {
+            console.error("Error fetching ETH price:", error);
+            return 4000;
+          }
+        };
 
-        const averageFeeUSD = (totalFee * starkPriceInUSD) / txHashes.length;
+        const ethPriceInUSD = await fetchEthPrice();
+
+        const averageFeeUSD = (totalFeeEther * ethPriceInUSD) / txHashes.length;
 
         return averageFeeUSD;
       } catch (error) {

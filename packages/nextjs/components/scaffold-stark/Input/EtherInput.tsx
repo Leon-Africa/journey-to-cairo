@@ -9,41 +9,43 @@ import { useGlobalState } from "~~/services/store/store";
 
 const MAX_DECIMALS_USD = 2;
 
-function starkValueToDisplayValue(
+function etherValueToDisplayValue(
   usdMode: boolean,
-  starkValue: string,
-  currencyPrice: number,
+  etherValue: string,
+  nativeCurrencyPrice: number,
 ) {
-  if (usdMode && currencyPrice) {
-    const parsedStrkValue = parseFloat(starkValue);
-    if (Number.isNaN(parsedStrkValue)) {
-      return starkValue;
+  if (usdMode && nativeCurrencyPrice) {
+    const parsedEthValue = parseFloat(etherValue);
+    if (Number.isNaN(parsedEthValue)) {
+      return etherValue;
     } else {
       // We need to round the value rather than use toFixed,
       // since otherwise a user would not be able to modify the decimal value
       return (
-        Math.round(parsedStrkValue * currencyPrice * 10 ** MAX_DECIMALS_USD) /
+        Math.round(
+          parsedEthValue * nativeCurrencyPrice * 10 ** MAX_DECIMALS_USD,
+        ) /
         10 ** MAX_DECIMALS_USD
       ).toString();
     }
   } else {
-    return starkValue;
+    return etherValue;
   }
 }
 
-function displayValueTostarkValue(
+function displayValueToEtherValue(
   usdMode: boolean,
   displayValue: string,
-  currencyPrice: number,
+  nativeCurrencyPrice: number,
 ) {
-  if (usdMode && currencyPrice) {
+  if (usdMode && nativeCurrencyPrice) {
     const parsedDisplayValue = parseFloat(displayValue);
     if (Number.isNaN(parsedDisplayValue)) {
       // Invalid number.
       return displayValue;
     } else {
-      // Compute the STRK value if a valid number.
-      return (parsedDisplayValue / currencyPrice).toString();
+      // Compute the ETH value if a valid number.
+      return (parsedDisplayValue / nativeCurrencyPrice).toString();
     }
   } else {
     return displayValue;
@@ -51,11 +53,11 @@ function displayValueTostarkValue(
 }
 
 /**
- * Input for STRK amount with USD conversion.
+ * Input for ETH amount with USD conversion.
  *
- * onChange will always be called with the value in STRK
+ * onChange will always be called with the value in ETH
  */
-export const StarkInput = ({
+export const EtherInput = ({
   value,
   name,
   placeholder,
@@ -65,20 +67,22 @@ export const StarkInput = ({
 }: CommonInputProps & { usdMode?: boolean }) => {
   const [transitoryDisplayValue, setTransitoryDisplayValue] =
     useState<string>();
-  const currencyPrice = useGlobalState((state) => state.nativeCurrencyPrice);
+  const nativeCurrencyPrice = useGlobalState(
+    (state) => state.nativeCurrencyPrice,
+  );
   const [internalUsdMode, setInternalUSDMode] = useState(
-    currencyPrice > 0 ? Boolean(usdMode) : false,
+    nativeCurrencyPrice > 0 ? Boolean(usdMode) : false,
   );
 
   useEffect(() => {
-    setInternalUSDMode(currencyPrice > 0 ? Boolean(usdMode) : false);
-  }, [usdMode, currencyPrice]);
+    setInternalUSDMode(nativeCurrencyPrice > 0 ? Boolean(usdMode) : false);
+  }, [usdMode, nativeCurrencyPrice]);
 
   const displayValue = useMemo(() => {
-    const newDisplayValue = starkValueToDisplayValue(
+    const newDisplayValue = etherValueToDisplayValue(
       internalUsdMode,
       value,
-      currencyPrice,
+      nativeCurrencyPrice,
     );
     if (
       transitoryDisplayValue &&
@@ -89,7 +93,7 @@ export const StarkInput = ({
     // Clear any transitory display values that might be set
     setTransitoryDisplayValue(undefined);
     return newDisplayValue;
-  }, [currencyPrice, transitoryDisplayValue, internalUsdMode, value]);
+  }, [nativeCurrencyPrice, transitoryDisplayValue, internalUsdMode, value]);
 
   const handleChangeNumber = (newValue: string) => {
     if (newValue && !SIGNED_NUMBER_REGEX.test(newValue)) {
@@ -109,16 +113,16 @@ export const StarkInput = ({
       setTransitoryDisplayValue(undefined);
     }
 
-    const newStrkValue = displayValueTostarkValue(
+    const newEthValue = displayValueToEtherValue(
       internalUsdMode,
       newValue,
-      currencyPrice,
+      nativeCurrencyPrice,
     );
-    onChange(newStrkValue);
+    onChange(newEthValue);
   };
 
   const toggleMode = () => {
-    if (currencyPrice > 0) {
+    if (nativeCurrencyPrice > 0) {
       setInternalUSDMode(!internalUsdMode);
     }
   };
@@ -138,7 +142,7 @@ export const StarkInput = ({
       suffix={
         <div
           className={`${
-            currencyPrice > 0
+            nativeCurrencyPrice > 0
               ? ""
               : "tooltip tooltip-secondary before:content-[attr(data-tip)] before:right-[-10px] before:left-auto before:transform-none"
           }`}
@@ -147,7 +151,7 @@ export const StarkInput = ({
           <button
             className="btn btn-primary h-[2rem] min-h-[2rem] mt-[.1rem]"
             onClick={toggleMode}
-            disabled={!internalUsdMode && !currencyPrice}
+            disabled={!internalUsdMode && !nativeCurrencyPrice}
           >
             <ArrowsRightLeftIcon
               className="h-3 w-3 cursor-pointer"

@@ -13,7 +13,12 @@ import {
   isError,
 } from "~~/app/debug/_components/contract";
 import { useTargetNetwork } from "~~/hooks/scaffold-stark/useTargetNetwork";
-import { useNetwork, useContract } from "@starknet-react/core";
+import {
+  useSendTransaction,
+  useNetwork,
+  useTransactionReceipt,
+  useContract,
+} from "@starknet-react/core";
 import { Abi } from "abi-wan-kanabi";
 import { AbiFunction } from "~~/utils/scaffold-stark/contract";
 import { Address } from "@starknet-react/chains";
@@ -43,12 +48,7 @@ export const WriteOnlyFunctionForm = ({
     useState<FormErrorMessageState>({});
   const { status: walletStatus, isConnected, account, chainId } = useAccount();
   const { chain } = useNetwork();
-  const {
-    writeTransaction,
-    transactionReceiptInstance,
-    sendTransactionInstance,
-  } = useTransactor();
-  const { data: txResult } = transactionReceiptInstance;
+  const writeTxn = useTransactor();
   const { targetNetwork } = useTargetNetwork();
 
   const writeDisabled = useMemo(
@@ -64,7 +64,12 @@ export const WriteOnlyFunctionForm = ({
     address: contractAddress,
   });
 
-  const { isPending: isLoading, error } = sendTransactionInstance;
+  const {
+    data: result,
+    isPending: isLoading,
+    sendAsync,
+    error,
+  } = useSendTransaction({});
 
   // side effect for error logging
   useEffect(() => {
@@ -75,37 +80,42 @@ export const WriteOnlyFunctionForm = ({
   }, [error]);
 
   const handleWrite = async () => {
-    try {
-      await writeTransaction(
-        !!contractInstance
-          ? [
-              contractInstance.populate(
-                abiFunction.name,
-                getArgsAsStringInputFromForm(form),
-              ),
-            ]
-          : [],
-      );
-    } catch (e: any) {
-      const errorPattern = /Contract (.*?)"}/;
-      const match = errorPattern.exec(e.message);
-      const message = match ? match[1] : e.message;
+    if (sendAsync) {
+      try {
+        const makeWriteWithParams = () =>
+          sendAsync(
+            !!contractInstance
+              ? [
+                  contractInstance.populate(
+                    abiFunction.name,
+                    getArgsAsStringInputFromForm(form),
+                  ),
+                ]
+              : [],
+          );
+        await writeTxn(makeWriteWithParams);
+        onChange();
+      } catch (e: any) {
+        const errorPattern = /Contract (.*?)"}/;
+        const match = errorPattern.exec(e.message);
+        const message = match ? match[1] : e.message;
 
-      console.error(
-        "⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error",
-        message,
-      );
+        console.error(
+          "⚡️ ~ file: WriteOnlyFunctionForm.tsx:handleWrite ~ error",
+          message,
+        );
+      }
     }
   };
 
   const [displayedTxResult, setDisplayedTxResult] =
     useState<InvokeTransactionReceiptResponse>();
+  const { data: txResult } = useTransactionReceipt({
+    hash: result?.transaction_hash,
+  });
   useEffect(() => {
-    setDisplayedTxResult(
-      txResult as unknown as InvokeTransactionReceiptResponse,
-    );
-    onChange();
-  }, [txResult, onChange]);
+    setDisplayedTxResult(txResult as InvokeTransactionReceiptResponse);
+  }, [txResult]);
 
   // TODO use `useMemo` to optimize also update in ReadOnlyFunctionForm
   const transformedFunction = transformAbiFunction(abiFunction);

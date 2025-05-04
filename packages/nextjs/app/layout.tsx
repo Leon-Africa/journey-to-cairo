@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const ScaffoldStarkApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning>
-      <body suppressHydrationWarning>
+      <body>
         <ThemeProvider enableSystem>
           <ScaffoldStarkAppWithProviders>
             {children}

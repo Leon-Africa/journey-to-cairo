@@ -1,15 +1,20 @@
 import scaffoldConfig from "~~/scaffold.config";
 
-export const fetchPrice = async (retries = 3): Promise<number> => {
+export const fetchPriceFromCoingecko = async (
+  symbol: string,
+  retries = 3,
+): Promise<number> => {
   let attempt = 0;
   while (attempt < retries) {
     try {
-      const response = await fetch(`/api/price`);
+      const response = await fetch(`/api/price/${symbol}`);
       const data = await response.json();
-      return data.starknet.usd;
+      return symbol === "ETH" ? data.ethereum.usd : data.starknet.usd;
     } catch (error) {
       console.error(
-        `Attempt ${attempt + 1} - Error fetching STRK price from Coingecko: `,
+        `Attempt ${
+          attempt + 1
+        } - Error fetching ${symbol} price from Coingecko: `,
         error,
       );
       attempt++;
@@ -29,9 +34,11 @@ class PriceService {
     any,
     {
       setNativeCurrencyPrice: (price: number) => void;
+      setStrkCurrencyPrice: (price: number) => void;
     }
   > = new Map();
   private currentNativeCurrencyPrice: number = 0;
+  private currentStrkCurrencyPrice: number = 0;
   private idCounter: number = 0;
 
   private constructor() {}
@@ -50,12 +57,14 @@ class PriceService {
   public startPolling(
     ref: any,
     setNativeCurrencyPrice: (price: number) => void,
+    setStrkCurrencyPrice: (price: number) => void,
   ) {
     if (this.listeners.has(ref)) return;
-    this.listeners.set(ref, { setNativeCurrencyPrice });
+    this.listeners.set(ref, { setNativeCurrencyPrice, setStrkCurrencyPrice });
 
     if (this.intervalId) {
       setNativeCurrencyPrice(this.currentNativeCurrencyPrice);
+      setStrkCurrencyPrice(this.currentStrkCurrencyPrice);
       return;
     }
 
@@ -80,15 +89,24 @@ class PriceService {
     return this.currentNativeCurrencyPrice;
   }
 
+  public getCurrentStrkCurrencyPrice() {
+    return this.currentStrkCurrencyPrice;
+  }
+
   private async fetchPrices() {
     try {
-      const strkPrice = await fetchPrice();
-      if (strkPrice) {
-        this.currentNativeCurrencyPrice = strkPrice;
+      const ethPrice = await fetchPriceFromCoingecko("ETH");
+      const strkPrice = await fetchPriceFromCoingecko("STRK");
+      if (ethPrice && strkPrice) {
+        this.currentNativeCurrencyPrice = ethPrice;
+        this.currentStrkCurrencyPrice = strkPrice;
       }
       this.listeners.forEach((listener) => {
         listener.setNativeCurrencyPrice(
-          strkPrice || this.currentNativeCurrencyPrice,
+          ethPrice || this.currentNativeCurrencyPrice,
+        );
+        listener.setStrkCurrencyPrice(
+          strkPrice || this.currentStrkCurrencyPrice,
         );
       });
     } catch (error) {

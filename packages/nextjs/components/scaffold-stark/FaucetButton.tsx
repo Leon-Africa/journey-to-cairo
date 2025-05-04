@@ -2,37 +2,37 @@
 
 import { useState } from "react";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
-import { mintStrk } from "~~/services/web3/faucet";
+import { mintEth } from "~~/services/web3/faucet";
 import { Address, devnet } from "@starknet-react/chains";
 import { useTargetNetwork } from "~~/hooks/scaffold-stark/useTargetNetwork";
-import useScaffoldStrkBalance from "~~/hooks/scaffold-stark/useScaffoldStrkBalance";
+import useScaffoldEthBalance from "~~/hooks/scaffold-stark/useScaffoldEthBalance";
 import { useAccount } from "~~/hooks/useAccount";
 
-// Number of STRK faucet sends to an address
-const NUM_OF_STRK = "1";
+// Number of ETH faucet sends to an address
+const NUM_OF_ETH = "1";
 
 /**
- * FaucetButton button which lets you grab strk.
+ * FaucetButton button which lets you grab eth.
  */
 export const FaucetButton = () => {
   const { address } = useAccount();
-  const { value } = useScaffoldStrkBalance({ address });
+  const { value } = useScaffoldEthBalance({ address });
 
   const { targetNetwork } = useTargetNetwork();
 
   const [loading, setLoading] = useState(false);
 
-  const sendSTRK = async () => {
+  const sendETH = async () => {
     if (!address) {
       return;
     }
 
     try {
       setLoading(true);
-      await mintStrk(address as Address, NUM_OF_STRK);
+      await mintEth(address as Address, NUM_OF_ETH);
       setLoading(false);
     } catch (error) {
-      console.error("⚡️ ~ file: FaucetButton.tsx:sendSTRK ~ error", error);
+      console.error("⚡️ ~ file: FaucetButton.tsx:sendETH ~ error", error);
       setLoading(false);
     }
   };
@@ -55,7 +55,7 @@ export const FaucetButton = () => {
     >
       <button
         className="btn btn-secondary btn-sm px-2 rounded-full"
-        onClick={sendSTRK}
+        onClick={sendETH}
         disabled={loading}
       >
         {!loading ? (

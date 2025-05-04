@@ -1,16 +1,16 @@
 import { Address } from "@starknet-react/chains";
 
-export async function mintStrk(inputAddress: Address, strk: string) {
+export async function mintEth(inputAddress: Address, eth: string) {
   try {
-    const response = await fetch("http://127.0.0.1:5050/mint", {
+    const response = await fetch("http://0.0.0.0:5050/mint", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         address: inputAddress,
-        amount: parseFloat(strk) * 10 ** 18,
-        unit: "FRI",
+        amount: parseFloat(eth) * 10 ** 18,
+        unit: "WEI",
       }),
     });
     if (!response.ok) {
