@@ -1,6 +1,6 @@
 # Journey to Cairo
 
-For local running using latests
+For local running using latest
 
 
 ````

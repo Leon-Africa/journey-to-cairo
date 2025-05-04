@@ -247,7 +247,7 @@ const executeDeployCalls = async (options?: UniversalDetails) => {
     if (networkName === "sepolia" || networkName === "mainnet") {
       const receipt = (await provider.waitForTransaction(
         transaction_hash
-      )) as TransactionReceipt;
+      )) as unknown as TransactionReceipt;
       if (receipt.execution_status !== "SUCCEEDED") {
         const revertReason = receipt.revert_reason;
         throw new Error(red(`Deploy Calls Failed: ${revertReason}`));
