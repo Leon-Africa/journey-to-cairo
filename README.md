@@ -1,5 +1,7 @@
 # Journey to Cairo
 
+![Build Status](https://github.com/Leon-Africa/journey-to-cairo/actions/workflows/ci_cd.yml/badge.svg)
+
 For local running using latest
 
 
