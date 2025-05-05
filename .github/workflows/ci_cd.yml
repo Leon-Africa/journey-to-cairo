@@ -39,7 +39,10 @@ jobs:
 
       - name: Install asdf
         uses: asdf-vm/actions/install@v4
-
+        with:
+          asdf_branch: master
+          skip_install: false
+          
       - name: Install Starknet Foundry
         uses: foundry-rs/setup-snfoundry@v4
 
