@@ -38,11 +38,10 @@ jobs:
           scarb-version: "2.11.4"
 
       - name: Install asdf
-        uses: asdf-vm/actions/install@v4
+        uses: asdf-vm/actions/install@9cd779f40fe38688dd19505ccbc4eaaf018b44e7
         with:
-          asdf_branch: master
-          skip_install: false
-          
+        asdf_version: 0.16.7
+
       - name: Install Starknet Foundry
         uses: foundry-rs/setup-snfoundry@v4
 
