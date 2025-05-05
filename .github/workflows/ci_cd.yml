@@ -1,0 +1,79 @@
+name: ci_cd
+on:
+  push:
+    branches:
+      - ci_cd
+  pull_request:
+    branches:
+      - main
+
+on: workflow_dispatch
+
+env:
+  FOUNDRY_PROFILE: ci
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: Starknet Project
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set Node.js 22.x
+        uses: actions/setup-node@v22
+        with:
+          node-version: 22.x
+      
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install Scarb
+      - uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-version: "2.11.4"
+
+      - name: Install asdf
+        uses: asdf-vm/actions/install@v4
+
+      - name: Install Starknet Foundry
+        uses: foundry-rs/setup-snfoundry@v4
+
+      - name: Install yarn
+      - uses: mskelton/setup-yarn@v3
+        with:
+        node-version: '22.x'
+
+      - name: Check dirs and ls
+        run: |
+          pwd
+          ls -al
+
+      - name: Compile the contracts
+        run: |
+          yarn compile
+
+      - name: Install and Start Starknet Devnet
+        run: |
+          asdf --version
+          asdf plugin add starknet-devnet
+          asdf install starknet-devnet latest
+          starknet-devnet --version
+          yarn chain
+        env:
+          STARKNET_DEVNET_PORT: 5050
+          STARKNET_DEVNET_HOST: 127.0.0.1
+
+      - name: Deploy the contracts
+        run: |
+          yarn deploy
+
+      - name: In cli sanity check the frontend
+        run: |
+          yarn start
+
+      
