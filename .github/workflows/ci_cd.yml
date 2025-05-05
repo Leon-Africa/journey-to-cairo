@@ -40,7 +40,7 @@ jobs:
       - name: Install asdf
         uses: asdf-vm/actions/install@9cd779f40fe38688dd19505ccbc4eaaf018b44e7
         with:
-        asdf_version: 0.16.7
+          asdf_version: 0.16.7
 
       - name: Install Starknet Foundry
         uses: foundry-rs/setup-snfoundry@v4
