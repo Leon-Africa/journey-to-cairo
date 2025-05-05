@@ -65,7 +65,7 @@ jobs:
           asdf plugin add starknet-devnet
           asdf install starknet-devnet latest
           starknet-devnet --version
-          yarn chain
+          yarn chain &
         env:
           STARKNET_DEVNET_PORT: 5050
           STARKNET_DEVNET_HOST: 127.0.0.1
