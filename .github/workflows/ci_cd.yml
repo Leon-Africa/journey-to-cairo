@@ -28,7 +28,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 22.x
-          flags: --immutable-cache
       
       - name: Install Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -50,6 +49,7 @@ jobs:
         uses: mskelton/setup-yarn@v3
         with:
           node-version: '22.x'
+          flags: --immutable-cache
 
       - name: Check dirs and ls
         run: |
